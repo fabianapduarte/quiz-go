@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"time"
 
 	utils "github.com/fabianapduarte/quiz-go/utils"
 )
@@ -34,7 +35,9 @@ func (g *GameState) Init() {
 
 	g.Name = name
 
-	fmt.Printf("Vamos ao jogo, %s\n", g.Name)
+	fmt.Printf("Vamos ao jogo, %s", g.Name)
+	fmt.Println("Você terá 1 minuto para responder todas as perguntas")
+	fmt.Println()
 }
 
 func (g *GameState) ProcessCSV() {
@@ -65,7 +68,24 @@ func (g *GameState) ProcessCSV() {
 	}
 }
 
+func (g *GameState) SetTimer() {
+	timer := time.NewTimer(1 * time.Minute)
+	<-timer.C
+
+	fmt.Println("\n\n\033[31mTempo encerrado!\033[0m")
+	g.PrintResult()
+
+	os.Exit(0)
+}
+
+func (g *GameState) PrintResult() {
+	fmt.Println("Fim do jogo!")
+	fmt.Printf("Pontuação total: %d", g.Points)
+}
+
 func (g *GameState) Run() {
+	go g.SetTimer()
+
 	for index, question := range g.Questions {
 		fmt.Printf("\033[34m %d. %s \033[0m\n", index+1, question.Text)
 
@@ -73,7 +93,7 @@ func (g *GameState) Run() {
 			fmt.Printf("[%d] %s\n", indexOption+1, option)
 		}
 
-		fmt.Print("Digite a alternativa: ")
+		fmt.Print("\nDigite a alternativa: ")
 
 		var answer int
 		var err error
@@ -99,9 +119,6 @@ func (g *GameState) Run() {
 		}
 		fmt.Println()
 	}
-
-	fmt.Println("Fim do jogo!")
-	fmt.Printf("Pontuação total: %d", g.Points)
 }
 
 func main() {
@@ -112,4 +129,5 @@ func main() {
 	go game.ProcessCSV()
 	game.Init()
 	game.Run()
+	game.PrintResult()
 }
