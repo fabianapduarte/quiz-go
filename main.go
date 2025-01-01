@@ -80,6 +80,12 @@ func (g *GameState) SetTimer() {
 
 func (g *GameState) PrintResult() {
 	fmt.Println("Fim do jogo!")
+
+	if g.Points > 60 {
+		fmt.Println("Resultado: \033[32mAprovado(a)!\033[0m")
+	} else {
+		fmt.Println("Resultado: \033[31mReprovado(a)!\033[0m")
+	}
 	fmt.Printf("Pontuação total: %d", g.Points)
 }
 
