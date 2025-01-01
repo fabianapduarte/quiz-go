@@ -22,6 +22,14 @@ type GameState struct {
 	Questions []Question
 }
 
+var themes = []string{
+	"Artes",
+	"Ciencias",
+	"Ingles",
+	"Geografia",
+	"Historia",
+}
+
 func (g *GameState) Init() {
 	fmt.Println("Seja bem vindo(a) ao quiz!")
 	fmt.Print("Escreva seu nome: ")
@@ -34,14 +42,40 @@ func (g *GameState) Init() {
 	}
 
 	g.Name = name
-
-	fmt.Printf("Vamos ao jogo, %s", g.Name)
-	fmt.Println("Você terá 1 minuto para responder todas as perguntas")
-	fmt.Println()
 }
 
 func (g *GameState) ProcessCSV() {
-	file, err := os.Open("data/quiz-go.csv")
+	fmt.Println("Escolha o tema:")
+	for index, theme := range themes {
+		fmt.Printf("[%d] %s\n", index+1, theme)
+	}
+
+	fmt.Print("Digite a opção: ")
+
+	var option int
+	var err error
+
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		read, _ := reader.ReadString('\r')
+
+		option, err = utils.ToInt(read[:len(read)-1])
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Print("Digite a opção: ")
+			continue
+		}
+		if option < 1 || option > 5 {
+			fmt.Println("Opção inválida.")
+			fmt.Print("Digite a opção: ")
+			continue
+		}
+		break
+	}
+
+	themeSelected := themes[option-1]
+
+	file, err := os.Open("data/" + themeSelected + ".csv")
 	if err != nil {
 		panic("Erro ao abrir arquivo CSV")
 	}
@@ -81,7 +115,7 @@ func (g *GameState) SetTimer() {
 func (g *GameState) PrintResult() {
 	fmt.Println("Fim do jogo!")
 
-	if g.Points > 60 {
+	if g.Points >= 60 {
 		fmt.Println("Resultado: \033[32mAprovado(a)!\033[0m")
 	} else {
 		fmt.Println("Resultado: \033[31mReprovado(a)!\033[0m")
@@ -90,6 +124,10 @@ func (g *GameState) PrintResult() {
 }
 
 func (g *GameState) Run() {
+	fmt.Printf("Vamos ao jogo, %s", g.Name)
+	fmt.Println("Você terá 1 minuto para responder todas as perguntas")
+	fmt.Println()
+
 	go g.SetTimer()
 
 	for index, question := range g.Questions {
@@ -132,8 +170,8 @@ func main() {
 
 	utils.ClearTerminal()
 
-	go game.ProcessCSV()
 	game.Init()
+	game.ProcessCSV()
 	game.Run()
 	game.PrintResult()
 }
